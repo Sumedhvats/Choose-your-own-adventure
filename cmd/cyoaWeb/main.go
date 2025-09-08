@@ -1,15 +1,17 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 
 	dynamicstory "github.com/Sumedhvats/Choose-your-own-adventure"
 )
 
 func main() {
+	port := flag.Int("port", 3000, "port to run the http server")
 	file := flag.String("file", "gopher.json", "file name")
 	flag.Parse()
 	fmt.Printf("Using the story in %s.\n", *file)
@@ -18,10 +20,11 @@ func main() {
 		panic(err)
 
 	}
-	d := json.NewDecoder(f)
-	var story dynamicstory.Story
-	if err := d.Decode(&story); err != nil {
+	story, err := dynamicstory.JsonStory(f)
+	if err != nil {
 		panic(err)
 	}
-fmt.Printf("%+v\n",story)
+	h := dynamicstory.NewHandler(story)
+	fmt.Println("Starting the server on :", *port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":% d", *port), h))
 }
